@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz สำหรับเด็ก</title>
+    <link href="https://fonts.googleapis.com/css2?family=Itim&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        /* เปลี่ยนโทนสีเป็นม่วงพาสเทล */
+        :root { 
+            --primary: #a78bfa; /* สีม่วงพาสเทลหลัก (ปุ่ม, กรอบ) */
+            --primary-dark: #8b5cf6; /* สีม่วงเข้มขึ้นเมื่อเอาเมาส์ชี้ */
+            --secondary: #ede9fe; /* สีม่วงอ่อนมาก (พื้นหลังการ์ด) */
+            --accent: #f472b6; /* สีชมพูพาสเทลสำหรับเน้นข้อความ/คะแนน */
+            --bg: #faf5ff; /* สีพื้นหลังหน้าเว็บม่วงสว่าง */
+            --text-main: #4c1d95; /* สีตัวอักษรหลัก (ม่วงเข้ม) */
+        }
+        
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        .app-container { 
+            width: 95%; 
+            max-width: 500px; 
+            background: white; 
+            border-radius: 30px; 
+            border: 5px solid var(--secondary); 
+            padding: 30px; 
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15); 
+            position: relative; 
+            margin: 20px 0;
+        }
+        .screen { display: none; text-align: center; }
+        .screen.active { display: block; }
+        
+        h1 { font-family: 'Itim'; color: var(--accent); font-size: 2.5rem; margin-top: 0; }
+        h2 { font-family: 'Itim'; color: var(--primary-dark); }
+        
+        input[type="text"], input[type="number"] { 
+            padding: 15px; 
+            border-radius: 15px; 
+            border: 2px solid var(--secondary); 
+            font-size: 1.2rem; 
+            width: 100%; 
+            box-sizing: border-box; 
+            text-align: center; 
+            transition: 0.3s;
+            color: var(--text-main);
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+        }
+        
+        /* ซ่อนลูกศรขึ้นลงในช่อง input number */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+        
+        .btn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 15px 30px; 
+            border-radius: 50px; 
+            font-size: 1.3rem; 
+            font-family: 'Itim'; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: 0.3s; 
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(167, 139, 250, 0.3);
+        }
+        .btn:hover { background: var(--primary-dark); transform: scale(1.02); }
+        
+        .problem { 
+            background: #fff; 
+            padding: 20px 15px; 
+            border-radius: 20px; 
+            margin-bottom: 25px; 
+            border: 2px solid var(--secondary);
+            border-left: 8px solid var(--primary); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        }
+        .math-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+        
+        .fraction-inputs { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 15px; 
+            margin-top: 15px; 
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 15px;
+        }
+        .col { display: flex; flex-direction: column; gap: 5px; }
+        .fraction-inputs input { 
+            width: 60px; 
+            height: 50px; 
+            font-size: 1.2rem; 
+            padding: 5px; 
+            background: #fff;
+        }
+        .divider { height: 3px; background: var(--primary); margin: 2px 0; border-radius: 2px; }
+        
+        /* CSS สำหรับช่องที่ตอบถูก */
+        .correct-input {
+            background-color: #d1fae5 !important; 
+            border-color: #10b981 !important; 
+            color: #047857;
+            font-weight: bold;
+        }
+
+        /* ส่วนแสดงเวลา */
+        .timer-display {
+            font-family: 'Itim', cursive;
+            font-size: 1.5rem;
+            color: var(--accent);
+            background: var(--secondary);
+            padding: 8px 20px;
+            border-radius: 30px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="screen-intro" class="screen active">
+            <h1>สวัสดีจ้า!</h1>
+            <p style="font-size: 1.2rem; color: var(--text-main);">มาสนุกกับคณิตศาสตร์กันเถอะ<br>ชื่อเล่นของน้องคืออะไรเอ่ย?</p>
+            <input type="text" id="nickname" placeholder="พิมพ์ชื่อเล่นตรงนี้">
+            <button class="btn" onclick="startQuiz()">เริ่มเรียนกันเลย!</button>
+        </div>
+
+        <div id="screen-quiz" class="screen">
+            <h2 id="quiz-title"></h2>
+            <div class="timer-display" id="timer">⏱️ 00:00</div>
+            
+            <div id="problems-container"></div>
+            <button class="btn" onclick="showSummary()">ส่งคำตอบแล้วดูคะแนน</button>
+        </div>
+
+        <div id="screen-summary" class="screen">
+            <h1>เก่งมากเลย!</h1>
+            <h2 id="final-name" style="font-size: 1.8rem; color: var(--text-main);"></h2>
+            <div style="font-size: 6rem; color: var(--accent); font-family: 'Itim'; line-height: 1;" id="final-score">0</div>
+            <p style="font-size: 1.5rem; color: var(--text-main); margin-top: 10px;">คะแนนที่ทำได้</p>
+            
+            <p style="font-size: 1.2rem; color: #6b7280; margin-top: 5px; background: var(--secondary); padding: 10px; border-radius: 15px; display: inline-block;">
+                ใช้เวลาไป: <strong style="color: var(--primary-dark);" id="final-time">0 นาที 0 วินาที</strong>
+            </p>
+            
+            <button class="btn" onclick="location.reload()">ทำใหม่อีกรอบ</button>
+        </div>
+    </div>
+
+    <script>
+        const problems = [
+            { id: 1, text: "\\( \\left(3\\frac{1}{7} - 1\\frac{2}{3}\\right) + 2\\frac{3}{14} = \\)", ans: [3, 29, 42] },
+            { id: 2, text: "\\( 3\\frac{1}{5} - \\left(5\\frac{7}{10} \\div 9\\frac{1}{2}\\right) = \\)", ans: [2, 3, 5] },
+            { id: 3, text: "\\( 8\\frac{3}{4} - \\left(3\\frac{5}{8} + 2\\frac{2}{3}\\right) = \\)", ans: [2, 11, 24] },
+            { id: 4, text: "\\( \\left(8\\frac{1}{6} \\div 5\\frac{1}{4}\\right) \\div 5\\frac{5}{6} = \\)", ans: [0, 4, 15] }
+        ];
+
+        // ตัวแปรสำหรับจับเวลา
+        let timerInterval;
+        let timeInSeconds = 0;
+
+        // ฟังก์ชันอัปเดตเวลาบนหน้าจอ
+        function updateTimer() {
+            timeInSeconds++;
+            const minutes = Math.floor(timeInSeconds / 60);
+            const seconds = timeInSeconds % 60;
+            
+            // ทำให้เป็นฟอร์แมต 00:00
+            const displayMin = minutes < 10 ? '0' + minutes : minutes;
+            const displaySec = seconds < 10 ? '0' + seconds : seconds;
+            
+            document.getElementById('timer').innerText = `⏱️ ${displayMin}:${displaySec}`;
+        }
+
+        function startQuiz() {
+            const name = document.getElementById('nickname').value.trim();
+            if(!name) {
+                alert("อย่าลืมใส่ชื่อเล่นก่อนนะจ๊ะ!");
+                return;
+            }
+            
+            document.getElementById('screen-intro').classList.remove('active');
+            document.getElementById('screen-quiz').classList.add('active');
+            document.getElementById('quiz-title').innerText = `สู้ๆ นะน้อง ${name}!`;
+            
+            renderProblems();
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise().catch((err) => console.log('MathJax error: ', err));
+            }
+
+            // เริ่มจับเวลา
+            timeInSeconds = 0;
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function checkRealTime(id, ansW, ansN, ansD) {
+            const wInput = document.getElementById(`w${id}`);
+            const nInput = document.getElementById(`n${id}`);
+            const dInput = document.getElementById(`d${id}`);
+
+            const w = parseInt(wInput.value) || 0;
+            const n = parseInt(nInput.value) || 0;
+            const d = parseInt(dInput.value) || 0;
+
+            if (w === ansW && n === ansN && d === ansD) {
+                wInput.classList.add('correct-input');
+                nInput.classList.add('correct-input');
+                dInput.classList.add('correct-input');
+            } else {
+                wInput.classList.remove('correct-input');
+                nInput.classList.remove('correct-input');
+                dInput.classList.remove('correct-input');
+            }
+        }
+
+        function renderProblems() {
+            const container = document.getElementById('problems-container');
+            container.innerHTML = problems.map(p => `
+                <div class="problem">
+                    <div class="math-text"><b>ข้อ ${p.id}:</b><br><br>${p.text}</div>
+                    <div class="fraction-inputs">
+                        <input type="number" id="w${p.id}" placeholder="เต็ม" oninput="checkRealTime(${p.id}, ${p.ans[0]}, ${p.ans[1]}, ${p.ans[2]})">
+                        <div class="col">
+                            <input type="number" id="n${p.id}" placeholder="เศษ" oninput="checkRealTime(${p.id}, ${p.ans[0]}, ${p.ans[1]}, ${p.ans[2]})">
+                            <div class="divider"></div>
+                            <input type="number" id="d${p.id}" placeholder="ส่วน" oninput="checkRealTime(${p.id}, ${p.ans[0]}, ${p.ans[1]}, ${p.ans[2]})">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showSummary() {
+            // หยุดเวลา
+            clearInterval(timerInterval);
+
+            let score = 0;
+            problems.forEach(p => {
+                const w = parseInt(document.getElementById(`w${p.id}`).value) || 0;
+                const n = parseInt(document.getElementById(`n${p.id}`).value) || 0;
+                const d = parseInt(document.getElementById(`d${p.id}`).value) || 0;
+                
+                if(w === p.ans[0] && n === p.ans[1] && d === p.ans[2]) {
+                    score++;
+                }
+            });
+            
+            document.getElementById('screen-quiz').classList.remove('active');
+            document.getElementById('screen-summary').classList.add('active');
+            document.getElementById('final-name').innerText = `น้อง${document.getElementById('nickname').value}`;
+            document.getElementById('final-score').innerText = score;
+
+            // นำเวลามาแสดงในหน้าสรุปผล
+            const minutes = Math.floor(timeInSeconds / 60);
+            const seconds = timeInSeconds % 60;
+            document.getElementById('final-time').innerText = `${minutes} นาที ${seconds} วินาที`;
+        }
+    </script>
+</body>
+</html>
